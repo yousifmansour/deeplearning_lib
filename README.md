@@ -1,1 +1,1 @@
-#nn-lib
+# Toy deep learning library
