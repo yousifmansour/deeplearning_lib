@@ -1,8 +1,8 @@
 import numpy as np
 from sklearn.metrics import log_loss
 
-from nn_helpers import __logistic_cost, __relu, __relu_prime, __sigmoid, __sigmoid_prime
-from nn_helpers import initialize_parameters, calc_precision
+from core.nn_helpers import __logistic_cost, __relu, __relu_prime, __sigmoid, __sigmoid_prime
+from core.nn_helpers import initialize_parameters, calc_precision
 
 
 def __initialize_nn_parameters(input_length, num_hidden_units, output_length, num_layers, m):
