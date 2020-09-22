@@ -1,8 +1,10 @@
 import numpy as np
 from sklearn.metrics import log_loss
 
-from core.nn_helpers import __logistic_cost, __relu, __relu_prime, __sigmoid, __sigmoid_prime
-from core.nn_helpers import initialize_parameters, calc_precision
+from core.preprocessing.initialization import initialize_parameters
+from core.cost.logistic import __logistic_cost, calc_precision
+from core.activations.sigmoid import __sigmoid
+from core.activations.relu import __relu, __relu_prime
 
 
 def __initialize_nn_parameters(input_length, num_hidden_units, output_length, num_layers, m):
@@ -92,61 +94,3 @@ def nn_l_layer(X, Y, iterations=1000, l=2, num_hidden_units=10, learning_rate=0.
 
     AL = cache["A" + str(l)]
     return AL, __logistic_cost(AL, Y, m), calc_precision(AL, Y)
-
-
-def nn_2_layer(X, Y, iterations=1, num_hidden_units=1, learning_rate=0.001):
-    # 1) init params
-    m = Y.shape[0]
-    W1, b1 = initialize_parameters(X.shape[0], num_hidden_units, m)
-    W2, b2 = initialize_parameters(num_hidden_units, 1, m)
-
-    for i in range(0, iterations):
-        # 2) forward pass
-        Z1 = np.dot(W1, X) + b1
-        A1 = __relu(Z1)
-        Z2 = np.dot(W2, A1) + b2
-        A2 = __sigmoid(Z2)
-
-        # 3) backward pass
-        dZ2 = A2 - Y
-        dW2 = np.dot(dZ2, A1.T) / m
-        db2 = np.sum(dZ2, axis=1, keepdims=True)/m
-
-        dA1 = np.dot(W2.T, dZ2)
-        dZ1 = np.multiply(dA1, __relu_prime(Z1))
-        dW1 = np.dot(dZ1, X.T)/m
-        db1 = np.sum(dZ1, axis=1, keepdims=True)/m
-
-        # 4) update params
-        W1 = W1 - learning_rate * dW1
-        b1 = b1 - learning_rate * db1
-        W2 = W2 - learning_rate * dW2
-        b2 = b2 - learning_rate * db2
-
-        if(i % 100 == 0):
-            print('Error at step', i, '/', iterations, ': ',
-                  __logistic_cost(A2, Y, m), "Accuracy: ", calc_precision(A2, Y), '%')
-
-    return A2, __logistic_cost(A2, Y, m), calc_precision(A2, Y)
-
-
-def regression(X, Y, iterations=1, learning_rate=0.001):
-    # 1) init params
-    m = Y.shape[0]
-    W, b = initialize_parameters(X.shape[0], 1, m)
-    for i in range(0, iterations):
-        # 2) forward pass
-        Z = np.dot(W, X) + b
-        A = __sigmoid(Z)
-        # 3) backward pass calculating gradients
-        dZ = A - Y
-        dW = np.dot(dZ, X.T)
-        db = dZ
-        # 4) update params
-        W = W - learning_rate * dW
-        b = b - learning_rate * db
-        if(i % 100 == 0):
-            print('Error at step', i, ': ', __logistic_cost(A, Y, m),
-                  "Accuracy: ", calc_precision(A, Y), '%')
-
-    return A, __logistic_cost(A, Y, m), calc_precision(A, Y)
