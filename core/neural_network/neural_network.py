@@ -7,21 +7,15 @@ from core.activations.sigmoid import __sigmoid
 from core.activations.relu import __relu, __relu_prime
 
 
-def __initialize_nn_parameters(input_length, num_hidden_units, output_length, num_layers, m):
+def __initialize_nn_parameters(layer_dimensions, m):
     parameters = {}
-    if num_layers > 1:
-        _w, _b = initialize_parameters(input_length, num_hidden_units, m)
-        parameters["W1"], parameters["b1"] = _w, _b
-        for i in range(2, num_layers):
-            _w, _b = initialize_parameters(
-                num_hidden_units, num_hidden_units, m)
-            parameters["W" + str(i)], parameters["b" + str(i)] = _w, _b
-        _w, _b = initialize_parameters(num_hidden_units, output_length, m)
-        parameters["W" + str(num_layers)] = _w
-        parameters["b" + str(num_layers)] = _b
-    else:
-        _w, _b = initialize_parameters(input_length, output_length, m)
-        parameters["W1"], parameters["b1"] = _w, _b
+    num_layers = len(layer_dimensions)
+    for i in range(0, num_layers-1):
+        input_hidden_units = layer_dimensions[i]
+        output_hidden_units = layer_dimensions[i+1]
+        _w, _b = initialize_parameters(
+            input_hidden_units, output_hidden_units, m)
+        parameters["W" + str(i+1)], parameters["b" + str(i+1)] = _w, _b
     return parameters
 
 
@@ -69,17 +63,18 @@ def __nn_l_layer_update_params(parameters, cache, num_layers, learning_rate, m):
     return parameters
 
 
-def nn_l_layer(X, Y, iterations=1000, l=2, num_hidden_units=10, learning_rate=0.001):
+def nn_l_layer(X, Y, iterations=1000, layer_dimensions=[1], learning_rate=0.001):
     print("X.shape", X.shape)
     print("Y.shape", Y.shape)
 
     m = Y.shape[0]
     cache = {}
     cache["A0"] = X
-
+    l = len(layer_dimensions)
+    layer_dimensions.insert(0, X.shape[0])
+    
     # 1) init params
-    parameters = __initialize_nn_parameters(
-        X.shape[0], num_hidden_units, 1, l, m)
+    parameters = __initialize_nn_parameters(layer_dimensions, m)
 
     for i in range(0, iterations):
         cache, parameters = __nn_l_layer_forward(parameters, cache, l)
