@@ -16,13 +16,13 @@ def nnlib_regression():
 
 
 def nnlib_nn_2_layer():
-    predictions, error, acc = nn_2_layer(X.T, y, 10000, 64, 0.001)
+    predictions, error, acc = nn_2_layer(X.T, y, 10000, 16, 0.001)
     print(1*(predictions > 0.5))
     print("Accuracy = ", acc, '%')
 
 
 def nnlib_nn_l_layer():
-    predictions, error, acc = nn_l_layer(X.T, y, 10000, 3, 32, 0.001)
+    predictions, error, acc = nn_l_layer(X.T, y, 10000, [4, 64, 8, 1], 0.001)
     print(1*(predictions > 0.5))
     print("Accuracy = ", acc, '%')
 
