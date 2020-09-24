@@ -12,13 +12,13 @@ X, y = datasets.load_breast_cancer(return_X_y=True)
 
 
 def nnlib_regression(X, y):
-    predictions, error, acc = regression(X.T, y, 10000)
+    parameters, predictions, error, acc = regression(X.T, y, 10000)
     print(1*(predictions > 0.5))
     print("Accuracy = ", acc, '%')
 
 
 def nnlib_nn_2_layer(X, y):
-    predictions, error, acc = nn_2_layer(X.T, y, 10000, 16, 0.001)
+    parameters, predictions, error, acc = nn_2_layer(X.T, y, 10000, 16, 0.001)
     print(1*(predictions > 0.5))
     print("Accuracy = ", acc, '%')
 
@@ -29,8 +29,8 @@ def nnlib_nn_l_layer(X, y):
     print(1*(predictions > 0.5))
     print("Accuracy = ", acc, '%')
 
-# nnlib_regression()
-# nnlib_nn_2_layer()
+# nnlib_regression(X, y)
+# nnlib_nn_2_layer(X, y)
 
 
 X_train, X_dev, X_test, y_train, y_dev, y_test = split_dataset(X, y, 0.6, 0.2)
