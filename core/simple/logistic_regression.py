@@ -25,4 +25,4 @@ def regression(X, Y, iterations=1, learning_rate=0.001):
             print('Error at step', i, ': ', __logistic_cost(A, Y, m),
                   "Accuracy: ", calc_precision(A, Y), '%')
 
-    return A, __logistic_cost(A, Y, m), calc_precision(A, Y)
+    return {"W": W, "b": b}, A, __logistic_cost(A, Y, m), calc_precision(A, Y)

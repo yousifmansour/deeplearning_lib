@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.metrics import log_loss
 
 from core.preprocessing.initialization import initialize_parameters
 from core.cost.logistic import __logistic_cost, calc_precision
@@ -63,7 +62,7 @@ def __nn_l_layer_update_params(parameters, cache, num_layers, learning_rate, m):
     return parameters
 
 
-def nn_l_layer(X, Y, iterations=1000, layer_dimensions=[1], learning_rate=0.001):
+def train(X, Y, iterations=1000, layer_dimensions=[1], learning_rate=0.001):
     print("X.shape", X.shape)
     print("Y.shape", Y.shape)
 
@@ -72,7 +71,7 @@ def nn_l_layer(X, Y, iterations=1000, layer_dimensions=[1], learning_rate=0.001)
     cache["A0"] = X
     l = len(layer_dimensions)
     layer_dimensions.insert(0, X.shape[0])
-    
+
     # 1) init params
     parameters = __initialize_nn_parameters(layer_dimensions, m)
 
@@ -88,4 +87,11 @@ def nn_l_layer(X, Y, iterations=1000, layer_dimensions=[1], learning_rate=0.001)
                   __logistic_cost(AL, Y, m), "Accuracy: ", calc_precision(AL, Y), '%')
 
     AL = cache["A" + str(l)]
-    return AL, __logistic_cost(AL, Y, m), calc_precision(AL, Y)
+    return parameters, AL, __logistic_cost(AL, Y, m), calc_precision(AL, Y)
+
+
+def predict(X_input, parameters, num_layers):
+    cache = {}
+    cache["A0"] = X_input
+    cache, _ = __nn_l_layer_forward(parameters, cache, num_layers)
+    return cache["A" + str(num_layers)]
