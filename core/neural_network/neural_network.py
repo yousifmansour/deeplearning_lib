@@ -49,7 +49,7 @@ def __nn_l_layer_backward(parameters, cache, num_layers, Y):
     return cache, parameters
 
 
-def __nn_l_layer_update_params(parameters, cache, num_layers, learning_rate, m):
+def __nn_l_layer_update_params(parameters, cache, num_layers, learning_rate, lambd, m):
     for layer in range(num_layers, 0, -1):
         A_before = cache["A" + str(layer-1)]
         dZ_current = cache["dZ" + str(layer)]
@@ -57,12 +57,13 @@ def __nn_l_layer_update_params(parameters, cache, num_layers, learning_rate, m):
         db_current = np.sum(dZ_current, axis=1, keepdims=True)/m
         w_str = "W" + str(layer)
         b_str = "b" + str(layer)
-        parameters[w_str] = parameters[w_str] - learning_rate * dW_current
+        parameters[w_str] = parameters[w_str] - learning_rate * \
+            (dW_current + (lambd/m)*parameters[w_str])
         parameters[b_str] = parameters[b_str] - learning_rate * db_current
     return parameters
 
 
-def train(X, Y, iterations=1000, layer_dimensions=[1], learning_rate=0.001):
+def train(X, Y, iterations=1000, layer_dimensions=[1], learning_rate=0.001, lambd=0):
     print("X.shape", X.shape)
     print("Y.shape", Y.shape)
 
@@ -79,15 +80,15 @@ def train(X, Y, iterations=1000, layer_dimensions=[1], learning_rate=0.001):
         cache, parameters = __nn_l_layer_forward(parameters, cache, l)
         cache, parameters = __nn_l_layer_backward(parameters, cache, l, Y)
         parameters = __nn_l_layer_update_params(
-            parameters, cache, l, learning_rate, m)
+            parameters, cache, l, learning_rate, lambd, m)
 
         AL = cache["A" + str(l)]
         if(i % 100 == 0):
             print('Error at step', i, '/', iterations, ': ',
-                  __logistic_cost(AL, Y, m), "Accuracy: ", calc_precision(AL, Y), '%')
+                  __logistic_cost(AL, Y, m, lambd, parameters, l), "Accuracy: ", calc_precision(AL, Y), '%')
 
     AL = cache["A" + str(l)]
-    return parameters, AL, __logistic_cost(AL, Y, m), calc_precision(AL, Y)
+    return parameters, AL, __logistic_cost(AL, Y, m, lambd, parameters, l), calc_precision(AL, Y)
 
 
 def predict(X_input, parameters, num_layers):
