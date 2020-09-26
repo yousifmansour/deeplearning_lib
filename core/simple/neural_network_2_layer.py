@@ -35,8 +35,10 @@ def nn_2_layer(X, Y, iterations=1, num_hidden_units=1, learning_rate=0.001):
         W2 = W2 - learning_rate * dW2
         b2 = b2 - learning_rate * db2
 
+        parameters = {"W1": W1, "b1": b1, "W2": W2, "b2": b2}
+
         if(i % 100 == 0):
             print('Error at step', i, '/', iterations, ': ',
-                  __logistic_cost(A2, Y, m), "Accuracy: ", calc_precision(A2, Y), '%')
+                  __logistic_cost(A2, Y, m, parameters), "Accuracy: ", calc_precision(A2, Y), '%')
 
-    return {"W1": W1, "b1": b1, "W2": W2, "b2": b2}, A2, __logistic_cost(A2, Y, m), calc_precision(A2, Y)
+    return parameters, A2, __logistic_cost(A2, Y, m, parameters), calc_precision(A2, Y)
