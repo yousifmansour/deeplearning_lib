@@ -18,7 +18,7 @@ def initialize_network_parameters(layer_dimensions, m):
     return parameters
 
 
-def forward_step(parameters, cache, layers):
+def forward_step(parameters, cache, layers, apply_dropout=True):
     for i in range(1, len(layers)+1):
         layer = layers[i-1]
         W_current = parameters["W" + str(i)]
@@ -30,6 +30,12 @@ def forward_step(parameters, cache, layers):
             cache["A" + str(i)] = __sigmoid(Z)
         else:
             cache["A" + str(i)] = __relu(Z)
+        if apply_dropout:
+            keep_prob = layer["keep_prob"] if "keep_prob" in layer.keys(
+            ) else 1
+            cache["A" + str(i)] = np.multiply(cache["A" + str(i)],
+                                            1 * (np.random.rand(cache["A" + str(i)].shape[0], cache["A" + str(i)].shape[1]) < keep_prob))
+            cache["A" + str(i)] /= keep_prob
     return cache, parameters
 
 
@@ -100,5 +106,5 @@ def train(X, Y, iterations=1000, layers=[{"units": 1, "activation": 'sigmoid', "
 def predict(X_input, parameters, layers):
     cache = {}
     cache["A0"] = X_input
-    cache, _ = forward_step(parameters, cache, layers)
+    cache, _ = forward_step(parameters, cache, layers, apply_dropout=False)
     return cache["A" + str(len(layers))]

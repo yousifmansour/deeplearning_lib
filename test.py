@@ -26,14 +26,20 @@ def nnlib_nn_2_layer(X, y):
 # nnlib_regression(X, y)
 # nnlib_nn_2_layer(X, y)
 
-layers = [{"units": 4, "activation": 'relu', "keep_prob": 0.2, "lambd": 0},
-          {"units": 4, "activation": 'relu', "keep_prob": 0.2, "lambd": 0},
-          {"units": 4, "activation": 'relu', "keep_prob": 0.2, "lambd": 0},
-          {"units": 1, "activation": 'sigmod', "keep_prob": 0, "lambd": 0}]
+learning_rate = 0.0001
+keep_prob = 0.95
+lambd = 0
+
+layers = [{"units": 4, "activation": 'relu', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate}]
 
 X_train, X_dev, X_test, y_train, y_dev, y_test = split_dataset(X, y, 0.7, 0.15)
 parameters, predictions, error, acc = neural_network.train(
-    X.T, y, iterations=10000, layers=layers)
+    X.T, y, iterations=100000, layers=layers)
 
 
 predictions = neural_network.predict(X_dev.T, parameters, layers)
