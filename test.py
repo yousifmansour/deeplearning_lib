@@ -35,15 +35,13 @@ iterations = 100000
 layers = [{"units": 8, "activation": 'relu', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate},
           {"units": 8, "activation": 'relu', "keep_prob": keep_prob,
               "lambd": lambd, "learning_rate": learning_rate},
-          {"units": 8, "activation": 'relu', "keep_prob": keep_prob,
-              "lambd": lambd, "learning_rate": learning_rate},
           {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
            "lambd": lambd, "learning_rate": learning_rate},
-           {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
+          {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
            "lambd": lambd, "learning_rate": learning_rate},
-           {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
+          {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
            "lambd": lambd, "learning_rate": learning_rate},
-           {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
+          {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
            "lambd": lambd, "learning_rate": learning_rate},
           {"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate}]
 
