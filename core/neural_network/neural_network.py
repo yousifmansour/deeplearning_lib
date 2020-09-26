@@ -6,7 +6,7 @@ from core.activations.sigmoid import __sigmoid
 from core.activations.relu import __relu, __relu_prime
 
 
-def __initialize_nn_parameters(layer_dimensions, m):
+def initialize_network_parameters(layer_dimensions, m):
     parameters = {}
     num_layers = len(layer_dimensions)
     for i in range(0, num_layers-1):
@@ -18,81 +18,87 @@ def __initialize_nn_parameters(layer_dimensions, m):
     return parameters
 
 
-def __nn_l_layer_forward(parameters, cache, num_layers):
-    for layer in range(1, num_layers+1):
-        W_current = parameters["W" + str(layer)]
-        b_current = parameters["b" + str(layer)]
-        A_before = cache["A" + str(layer - 1)]
+def forward_step(parameters, cache, layers):
+    for i in range(1, len(layers)+1):
+        layer = layers[i-1]
+        W_current = parameters["W" + str(i)]
+        b_current = parameters["b" + str(i)]
+        A_before = cache["A" + str(i - 1)]
         Z = np.dot(W_current, A_before) + b_current
-        parameters["Z" + str(layer)] = Z
-        if layer == num_layers + 1:
-            cache["A" + str(layer)] = __sigmoid(Z)
+        parameters["Z" + str(i)] = Z
+        if layer["activation"] == 'sigmoid':
+            cache["A" + str(i)] = __sigmoid(Z)
         else:
-            cache["A" + str(layer)] = __relu(Z)
+            cache["A" + str(i)] = __relu(Z)
     return cache, parameters
 
 
-def __nn_l_layer_backward(parameters, cache, num_layers, Y):
-    for layer in range(num_layers, 0, -1):
-        if layer == num_layers:
+def backward_step(parameters, cache, layers, Y):
+    for i in range(len(layers), 0, -1):
+        if i == len(layers):
             # sigmoid
-            AL = cache["A" + str(layer)]
-            cache["dZ" + str(layer)] = AL - Y
+            AL = cache["A" + str(i)]
+            cache["dZ" + str(i)] = AL - Y
         else:
             # relu
-            W_next = parameters["W" + str(layer+1)]
-            dZ_next = cache["dZ" + str(layer+1)]
-            Z_current = parameters["Z" + str(layer)]
+            W_next = parameters["W" + str(i+1)]
+            dZ_next = cache["dZ" + str(i+1)]
+            Z_current = parameters["Z" + str(i)]
             dA_current = np.dot(W_next.T, dZ_next)
             dZ_current = np.multiply(dA_current, __relu_prime(Z_current))
-            cache["dZ" + str(layer)] = dZ_current
+            cache["dZ" + str(i)] = dZ_current
     return cache, parameters
 
 
-def __nn_l_layer_update_params(parameters, cache, num_layers, learning_rate, lambd, m):
-    for layer in range(num_layers, 0, -1):
-        A_before = cache["A" + str(layer-1)]
-        dZ_current = cache["dZ" + str(layer)]
+def update_params(parameters, cache, layers, m):
+    for i in range(len(layers), 0, -1):
+        layer = layers[i-1]
+        A_before = cache["A" + str(i-1)]
+        dZ_current = cache["dZ" + str(i)]
         dW_current = np.dot(dZ_current, A_before.T) / m
         db_current = np.sum(dZ_current, axis=1, keepdims=True)/m
-        w_str = "W" + str(layer)
-        b_str = "b" + str(layer)
+        w_str = "W" + str(i)
+        b_str = "b" + str(i)
+        learning_rate = layer["learning_rate"] if "learning_rate" in layer.keys(
+        ) else 0.01
+        lambd = layer["lambd"] if "lambd" in layer.keys() else 0
         parameters[w_str] = parameters[w_str] - learning_rate * \
             (dW_current + (lambd/m)*parameters[w_str])
         parameters[b_str] = parameters[b_str] - learning_rate * db_current
     return parameters
 
 
-def train(X, Y, iterations=1000, layer_dimensions=[1], learning_rate=0.001, lambd=0):
+def train(X, Y, iterations=1000, layers=[{"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": 0}]):
     print("X.shape", X.shape)
     print("Y.shape", Y.shape)
 
     m = Y.shape[0]
     cache = {}
     cache["A0"] = X
-    l = len(layer_dimensions)
-    layer_dimensions.insert(0, X.shape[0])
 
-    # 1) init params
-    parameters = __initialize_nn_parameters(layer_dimensions, m)
+    layer_dimensions = []
+    for i in range(0, len(layers)):
+        layer_dimensions.append(layers[i]["units"])
+
+    layer_dimensions.insert(0, X.shape[0])
+    parameters = initialize_network_parameters(layer_dimensions, m)
 
     for i in range(0, iterations):
-        cache, parameters = __nn_l_layer_forward(parameters, cache, l)
-        cache, parameters = __nn_l_layer_backward(parameters, cache, l, Y)
-        parameters = __nn_l_layer_update_params(
-            parameters, cache, l, learning_rate, lambd, m)
+        cache, parameters = forward_step(parameters, cache, layers)
+        cache, parameters = backward_step(parameters, cache, layers, Y)
+        parameters = update_params(parameters, cache, layers, m)
 
-        AL = cache["A" + str(l)]
+        AL = cache["A" + str(len(layers))]
         if(i % 100 == 0):
             print('Error at step', i, '/', iterations, ': ',
-                  __logistic_cost(AL, Y, m, lambd, parameters, l), "Accuracy: ", calc_precision(AL, Y), '%')
+                  __logistic_cost(AL, Y, m, layers[len(layers)-1]["lambd"] or 0, parameters, len(layers)), "Accuracy: ", calc_precision(AL, Y), '%')
 
-    AL = cache["A" + str(l)]
-    return parameters, AL, __logistic_cost(AL, Y, m, lambd, parameters, l), calc_precision(AL, Y)
+    AL = cache["A" + str(len(layers))]
+    return parameters, AL, __logistic_cost(AL, Y, m, layers[len(layers)-1]["lambd"] or 0, parameters, len(layers)), calc_precision(AL, Y)
 
 
-def predict(X_input, parameters, num_layers):
+def predict(X_input, parameters, layers):
     cache = {}
     cache["A0"] = X_input
-    cache, _ = __nn_l_layer_forward(parameters, cache, num_layers)
-    return cache["A" + str(num_layers)]
+    cache, _ = forward_step(parameters, cache, layers)
+    return cache["A" + str(len(layers))]
