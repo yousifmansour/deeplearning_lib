@@ -23,25 +23,22 @@ def nnlib_nn_2_layer(X, y):
     print("Accuracy = ", acc, '%')
 
 
-def nnlib_nn_l_layer(X, y):
-    predictions, error, acc = neural_network.train(
-        X.T, y, 100000, [3, 4, 3, 1], 0.01)
-    print(1*(predictions > 0.5))
-    print("Accuracy = ", acc, '%')
-
 # nnlib_regression(X, y)
 # nnlib_nn_2_layer(X, y)
 
-lambd=0
+layers = [{"units": 4, "activation": 'relu', "keep_prob": 0.2, "lambd": 0},
+          {"units": 4, "activation": 'relu', "keep_prob": 0.2, "lambd": 0},
+          {"units": 4, "activation": 'relu', "keep_prob": 0.2, "lambd": 0},
+          {"units": 1, "activation": 'sigmod', "keep_prob": 0, "lambd": 0}]
 
-X_train, X_dev, X_test, y_train, y_dev, y_test = split_dataset(X, y, 0.5, 0.25)
-network_layers = [8, 8, 1]
+X_train, X_dev, X_test, y_train, y_dev, y_test = split_dataset(X, y, 0.7, 0.15)
 parameters, predictions, error, acc = neural_network.train(
-    X.T, y, 100000, network_layers, 0.001, lambd)
+    X.T, y, iterations=10000, layers=layers)
 
-predictions = neural_network.predict(
-    X_dev.T, parameters, len(network_layers) - 1)
-dev_error = __logistic_cost(predictions, y_dev, y_dev[0], lambd, parameters, len(network_layers) - 1)
+
+predictions = neural_network.predict(X_dev.T, parameters, layers)
+dev_error = __logistic_cost(
+    predictions, y_dev, y_dev[0], layers[len(layers)-1]["lambd"], parameters, len(layers))
 dev_acc = calc_precision(predictions, y_dev)
 
 print("Train:\n\tError=", error, "\n\tAccuracy=", acc, '%')
