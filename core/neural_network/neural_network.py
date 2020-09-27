@@ -56,7 +56,7 @@ def backward_step(parameters, cache, layers, Y):
     return cache, parameters
 
 
-def update_params(parameters, cache, layers, m):
+def update_params(parameters, cache, layers, m, iteration):
     for i in range(len(layers), 0, -1):
         layer = layers[i-1]
         A_before = cache["A" + str(i-1)]
@@ -65,8 +65,9 @@ def update_params(parameters, cache, layers, m):
         db_current = np.sum(dZ_current, axis=1, keepdims=True)/m
         w_str = "W" + str(i)
         b_str = "b" + str(i)
-        learning_rate = layer["learning_rate"] if "learning_rate" in layer.keys(
-        ) else 0.01
+        learning_rate_function = layer["learning_rate"] if "learning_rate" in layer.keys(
+        ) else lambda _: 0.01
+        learning_rate = learning_rate_function(iteration)
         lambd = layer["lambd"] if "lambd" in layer.keys() else 0
         parameters[w_str] = parameters[w_str] - learning_rate * \
             (dW_current + (lambd/m)*parameters[w_str])
@@ -74,13 +75,12 @@ def update_params(parameters, cache, layers, m):
     return parameters
 
 
-def train(X, Y, iterations=1000, batch_size=64, layers=[{"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": 0}]):
+def train(X, Y, X_dev, Y_dev, iterations=1000, batch_size=64, layers=[{"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": 0}]):
     print("X.shape", X.shape)
     print("Y.shape", Y.shape)
 
     m = Y.shape[0]
     cache = {}
-    # cache["A0"] = X
 
     layer_dimensions = []
     for i in range(0, len(layers)):
@@ -97,6 +97,9 @@ def train(X, Y, iterations=1000, batch_size=64, layers=[{"units": 1, "activation
         layers)-1]["lambd"] if "lambd" in layers[len(layers)-1].keys() else 0
 
     for i in range(0, iterations):
+        # if i == iterations/2:
+            # TODO: check gradients
+            # check_gradients(parameters, cache, Y, final_lambd, len(layers))
         for j in range(0, np.maximum(int(np.ceil(m/batch_size))-1, 1)):
             X_batch = X.T[j*batch_size: (j+1)*batch_size].T
             Y_batch = Y.T[j*batch_size: (j+1)*batch_size].T
@@ -105,7 +108,7 @@ def train(X, Y, iterations=1000, batch_size=64, layers=[{"units": 1, "activation
             cache, parameters = forward_step(parameters, cache, layers)
             cache, parameters = backward_step(
                 parameters, cache, layers, Y_batch)
-            parameters = update_params(parameters, cache, layers, m)
+            parameters = update_params(parameters, cache, layers, m, i)
 
             AL = cache["A" + str(len(layers))]
 
@@ -119,11 +122,14 @@ def train(X, Y, iterations=1000, batch_size=64, layers=[{"units": 1, "activation
                 acc /= count
                 count = 1
                 if(i % 10 == 0):
-                    print('Error at step', i, '/', iterations,
-                          ': ', error, "F1 Accuracy: ", acc, '%')
+                    dev_predictions = predict(X_dev, parameters, layers)
+                    dev_error = __logistic_cost(dev_predictions, Y_dev, parameters, 0, len(layers))
+                    dev_acc = calc_f1_score(dev_predictions, Y_dev)
+                    print('Error at step', i, '/', iterations, ': ',  error, "F1 Accuracy: ", acc, '%', ' Dev error:', dev_error, ' Dev F1 Accuracy:, ', dev_acc, '%')
 
     predictions = predict(X, parameters, layers)
-    error = __logistic_cost(predictions, Y, parameters, final_lambd, len(layers))
+    error = __logistic_cost(predictions, Y, parameters,
+                            final_lambd, len(layers))
     acc = calc_f1_score(predictions, Y)
     return parameters, predictions, error, acc
 
