@@ -29,14 +29,12 @@ def nnlib_nn_2_layer(X, y):
 
 learning_rate = 0.001
 keep_prob = 1
-lambd = 0
+lambd = 0.7
 iterations = 100000
 
-layers = [{"units": 8, "activation": 'relu', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate},
-          {"units": 8, "activation": 'relu', "keep_prob": keep_prob,
-              "lambd": lambd, "learning_rate": learning_rate},
+layers = [{"units": 4, "activation": 'relu', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate},
           {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
-           "lambd": lambd, "learning_rate": learning_rate},
+              "lambd": lambd, "learning_rate": learning_rate},
           {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
            "lambd": lambd, "learning_rate": learning_rate},
           {"units": 4, "activation": 'relu', "keep_prob": keep_prob,
@@ -54,8 +52,7 @@ parameters, predictions, error, acc = neural_network.train(
     X_train.T, y_train, iterations=iterations, layers=layers)
 
 dev_predictions = neural_network.predict(X_dev.T, parameters, layers)
-dev_error = __logistic_cost(dev_predictions, y_dev, y_dev.shape[0], parameters, layers[len(
-    layers)-1]["lambd"], len(layers))
+dev_error = __logistic_cost(dev_predictions, y_dev, parameters, 0, len(layers))
 
 
 dev_acc = calc_precision(dev_predictions, y_dev)

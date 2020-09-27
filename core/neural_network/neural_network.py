@@ -97,10 +97,10 @@ def train(X, Y, iterations=1000, layers=[{"units": 1, "activation": 'sigmoid', "
         AL = cache["A" + str(len(layers))]
         if(i % 100 == 0):
             print('Error at step', i, '/', iterations, ': ',
-                  __logistic_cost(AL, Y, m, parameters, layers[len(layers)-1]["lambd"] or 0, len(layers)), "Accuracy: ", calc_precision(AL, Y), '%')
+                  __logistic_cost(AL, Y, parameters, layers[len(layers)-1]["lambd"] or 0, len(layers)), "Accuracy: ", calc_precision(AL, Y), '%')
 
     AL = cache["A" + str(len(layers))]
-    return parameters, AL, __logistic_cost(AL, Y, m, parameters, layers[len(layers)-1]["lambd"] or 0, len(layers)), calc_precision(AL, Y)
+    return parameters, AL, __logistic_cost(AL, Y, parameters, layers[len(layers)-1]["lambd"] or 0, len(layers)), calc_precision(AL, Y)
 
 
 def predict(X_input, parameters, layers):

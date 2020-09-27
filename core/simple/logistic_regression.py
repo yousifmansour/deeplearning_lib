@@ -21,8 +21,9 @@ def regression(X, Y, iterations=1, learning_rate=0.001):
         # 4) update params
         W = W - learning_rate * dW
         b = b - learning_rate * db
+        parameters = {"W": W, "b": b}
         if(i % 100 == 0):
-            print('Error at step', i, ': ', __logistic_cost(A, Y, m),
+            print('Error at step', i, ': ', __logistic_cost(A, Y, parameters),
                   "Accuracy: ", calc_precision(A, Y), '%')
 
-    return {"W": W, "b": b}, A, __logistic_cost(A, Y, m), calc_precision(A, Y)
+    return parameters, A, __logistic_cost(A, Y, parameters), calc_precision(A, Y)

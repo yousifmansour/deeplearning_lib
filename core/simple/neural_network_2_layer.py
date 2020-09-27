@@ -39,6 +39,6 @@ def nn_2_layer(X, Y, iterations=1, num_hidden_units=1, learning_rate=0.001):
 
         if(i % 100 == 0):
             print('Error at step', i, '/', iterations, ': ',
-                  __logistic_cost(A2, Y, m, parameters), "Accuracy: ", calc_precision(A2, Y), '%')
+                  __logistic_cost(A2, Y, parameters), "Accuracy: ", calc_precision(A2, Y), '%')
 
-    return parameters, A2, __logistic_cost(A2, Y, m, parameters), calc_precision(A2, Y)
+    return parameters, A2, __logistic_cost(A2, Y, parameters), calc_precision(A2, Y)
