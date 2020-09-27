@@ -12,23 +12,52 @@ X, y = datasets.load_breast_cancer(return_X_y=True)
 
 m = X.shape[0]
 y.reshape(m, 1)
-learning_rate = 0.001
+learning_rate = 0.01
 keep_prob = 1
 lambd = 0
-iterations = 10000
+iterations = 1000
 
-layers = [{"units": 64, "activation": 'relu', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate},
-          {"units": 64, "activation": 'relu', "keep_prob": keep_prob,
+layers = [{"units": 16, "activation": 'relu', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate},
+
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
               "lambd": lambd, "learning_rate": learning_rate},
-          {"units": 64, "activation": 'relu', "keep_prob": keep_prob,
-           "lambd": lambd, "learning_rate": learning_rate},
-          {"units": 64, "activation": 'relu', "keep_prob": keep_prob,
-           "lambd": lambd, "learning_rate": learning_rate},
-          {"units": 64, "activation": 'relu', "keep_prob": keep_prob,
-           "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
+          {"units": 16, "activation": 'relu', "keep_prob": 1,
+              "lambd": lambd, "learning_rate": learning_rate},
           {"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate}]
 
-X_train, X_dev, X_test, y_train, y_dev, y_test = split_dataset(X, y, True, 0.6, 0.20)
+X_train, X_dev, X_test, y_train, y_dev, y_test = split_dataset(
+    X, y, True, 0.6, 0.20)
 X_train, X_mean, X_standard_deviation = normalize(X_train)
 X_dev = apply_normalize(X_dev, X_mean, X_standard_deviation)
 X_test = apply_normalize(X_test, X_mean, X_standard_deviation)
@@ -42,3 +71,6 @@ dev_acc = calc_f1_score(dev_predictions, y_dev)
 
 print("Train:\n\tError=", error, "\n\tF1 Accuracy=", acc, '%')
 print("Dev:\n\tError=", dev_error, "\n\tF1 Accuracy=", dev_acc, '%')
+
+# print(1*(predictions.T[10: 20].T > 0.5))
+# print(y[10: 20])
