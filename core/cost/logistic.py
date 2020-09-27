@@ -2,7 +2,8 @@ import numpy as np
 from sklearn.metrics import log_loss
 
 
-def __logistic_cost(predictions, Y, m, parameters, lambd=0, num_layers=0):
+def __logistic_cost(predictions, Y, parameters, lambd=0, num_layers=0):
+    m = Y.shape[0]
     regularization_cost = 0
     for i in range(0, num_layers):
         regularization_cost += np.linalg.norm(
