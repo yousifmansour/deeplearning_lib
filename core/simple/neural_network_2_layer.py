@@ -2,7 +2,7 @@ import numpy as np
 
 from core.activations.relu import __relu, __relu_prime
 from core.activations.sigmoid import __sigmoid
-from core.cost.logistic import __logistic_cost, calc_precision
+from core.cost.logistic import __logistic_cost, calc_f1_score
 from core.preprocessing.initialization import initialize_parameters
 
 
@@ -39,6 +39,6 @@ def nn_2_layer(X, Y, iterations=1, num_hidden_units=1, learning_rate=0.001):
 
         if(i % 100 == 0):
             print('Error at step', i, '/', iterations, ': ',
-                  __logistic_cost(A2, Y, parameters), "Accuracy: ", calc_precision(A2, Y), '%')
+                  __logistic_cost(A2, Y, parameters), "F1 Accuracy: ", calc_f1_score(A2, Y), '%')
 
-    return parameters, A2, __logistic_cost(A2, Y, parameters), calc_precision(A2, Y)
+    return parameters, A2, __logistic_cost(A2, Y, parameters), calc_f1_score(A2, Y)
