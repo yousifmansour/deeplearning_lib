@@ -93,6 +93,9 @@ def train(X, Y, iterations=1000, batch_size=64, layers=[{"units": 1, "activation
     acc = 0
     count = 1
 
+    final_lambd = layers[len(
+        layers)-1]["lambd"] if "lambd" in layers[len(layers)-1].keys() else 0
+
     for i in range(0, iterations):
         for j in range(0, np.maximum(int(np.ceil(m/batch_size))-1, 1)):
             X_batch = X.T[j*batch_size: (j+1)*batch_size].T
@@ -104,12 +107,10 @@ def train(X, Y, iterations=1000, batch_size=64, layers=[{"units": 1, "activation
                 parameters, cache, layers, Y_batch)
             parameters = update_params(parameters, cache, layers, m)
 
-            lambd = layers[len(
-                layers)-1]["lambd"] if "lambd" in layers[len(layers)-1].keys() else 0
             AL = cache["A" + str(len(layers))]
 
             error += __logistic_cost(AL, Y_batch,
-                                     parameters, lambd, len(layers))
+                                     parameters, final_lambd, len(layers))
             acc += calc_f1_score(AL, Y_batch)
             count += 1
 
@@ -121,8 +122,10 @@ def train(X, Y, iterations=1000, batch_size=64, layers=[{"units": 1, "activation
                     print('Error at step', i, '/', iterations,
                           ': ', error, "F1 Accuracy: ", acc, '%')
 
-    AL = cache["A" + str(len(layers))]
-    return parameters, AL, error, acc
+    predictions = predict(X, parameters, layers)
+    error = __logistic_cost(predictions, Y, parameters, final_lambd, len(layers))
+    acc = calc_f1_score(predictions, Y)
+    return parameters, predictions, error, acc
 
 
 def predict(X_input, parameters, layers):

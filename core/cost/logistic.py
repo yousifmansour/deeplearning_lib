@@ -29,4 +29,4 @@ def calc_f1_score(y_hat, y):
     # F-Measure = (2 * Precision * Recall) / (Precision + Recall)
     precision = __calc_precision(y_hat, y)
     recall = __calc_recall(y_hat, y)
-    return (2 * precision * recall) / (precision + recall)
+    return (2 * precision * recall) / np.maximum(1, (precision + recall))
