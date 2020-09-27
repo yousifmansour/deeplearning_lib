@@ -1,7 +1,7 @@
 import numpy as np
 
 from core.preprocessing.initialization import initialize_parameters
-from core.cost.logistic import __logistic_cost, calc_precision
+from core.cost.logistic import __logistic_cost, calc_f1_score
 from core.activations.sigmoid import __sigmoid
 from core.activations.relu import __relu, __relu_prime
 
@@ -74,13 +74,13 @@ def update_params(parameters, cache, layers, m):
     return parameters
 
 
-def train(X, Y, iterations=1000, layers=[{"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": 0}]):
+def train(X, Y, iterations=1000, batch_size=64, layers=[{"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": 0}]):
     print("X.shape", X.shape)
     print("Y.shape", Y.shape)
 
     m = Y.shape[0]
     cache = {}
-    cache["A0"] = X
+    # cache["A0"] = X
 
     layer_dimensions = []
     for i in range(0, len(layers)):
@@ -89,18 +89,40 @@ def train(X, Y, iterations=1000, layers=[{"units": 1, "activation": 'sigmoid', "
     layer_dimensions.insert(0, X.shape[0])
     parameters = initialize_network_parameters(layer_dimensions, m)
 
-    for i in range(0, iterations):
-        cache, parameters = forward_step(parameters, cache, layers)
-        cache, parameters = backward_step(parameters, cache, layers, Y)
-        parameters = update_params(parameters, cache, layers, m)
+    error = 0
+    acc = 0
+    count = 1
 
-        AL = cache["A" + str(len(layers))]
-        if(i % 100 == 0):
-            print('Error at step', i, '/', iterations, ': ',
-                  __logistic_cost(AL, Y, parameters, layers[len(layers)-1]["lambd"] or 0, len(layers)), "Accuracy: ", calc_precision(AL, Y), '%')
+    for i in range(0, iterations):
+        for j in range(0, np.maximum(int(np.ceil(m/batch_size))-1, 1)):
+            X_batch = X.T[j*batch_size: (j+1)*batch_size].T
+            Y_batch = Y.T[j*batch_size: (j+1)*batch_size].T
+
+            cache["A0"] = X_batch
+            cache, parameters = forward_step(parameters, cache, layers)
+            cache, parameters = backward_step(
+                parameters, cache, layers, Y_batch)
+            parameters = update_params(parameters, cache, layers, m)
+
+            lambd = layers[len(
+                layers)-1]["lambd"] if "lambd" in layers[len(layers)-1].keys() else 0
+            AL = cache["A" + str(len(layers))]
+
+            error += __logistic_cost(AL, Y_batch,
+                                     parameters, lambd, len(layers))
+            acc += calc_f1_score(AL, Y_batch)
+            count += 1
+
+            if(j + 1 == int(np.ceil(m/batch_size))-1):
+                error /= count
+                acc /= count
+                count = 1
+                if(i % 10 == 0):
+                    print('Error at step', i, '/', iterations,
+                          ': ', error, "F1 Accuracy: ", acc, '%')
 
     AL = cache["A" + str(len(layers))]
-    return parameters, AL, __logistic_cost(AL, Y, parameters, layers[len(layers)-1]["lambd"] or 0, len(layers)), calc_precision(AL, Y)
+    return parameters, AL, error, acc
 
 
 def predict(X_input, parameters, layers):

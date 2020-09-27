@@ -3,7 +3,7 @@ import numpy as np
 
 from core.preprocessing.initialization import initialize_parameters
 from core.activations.sigmoid import __sigmoid
-from core.cost.logistic import __logistic_cost, calc_precision
+from core.cost.logistic import __logistic_cost, calc_f1_score
 
 
 def regression(X, Y, iterations=1, learning_rate=0.001):
@@ -24,6 +24,6 @@ def regression(X, Y, iterations=1, learning_rate=0.001):
         parameters = {"W": W, "b": b}
         if(i % 100 == 0):
             print('Error at step', i, ': ', __logistic_cost(A, Y, parameters),
-                  "Accuracy: ", calc_precision(A, Y), '%')
+                  "F1 Accuracy: ", calc_f1_score(A, Y), '%')
 
-    return parameters, A, __logistic_cost(A, Y, parameters), calc_precision(A, Y)
+    return parameters, A, __logistic_cost(A, Y, parameters), calc_f1_score(A, Y)

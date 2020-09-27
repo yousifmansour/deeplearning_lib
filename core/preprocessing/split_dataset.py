@@ -1,8 +1,9 @@
 import numpy as np
 
 
-def split_dataset(X, y, train_percentage=0.80, dev_percentage=0.1):
+def split_dataset(X, y, shuffle, train_percentage=0.80, dev_percentage=0.1):
     #  add assertion that X and y have same length
+    #  TODO: add shuffle
     m = y.shape[0]
     train_start = 0
     train_end = int(np.floor(train_percentage * m))
