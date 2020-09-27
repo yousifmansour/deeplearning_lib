@@ -2,30 +2,13 @@ import numpy as np
 import tensorflow as tf
 from sklearn import datasets
 
+from core.cost.logistic import __logistic_cost, calc_precision
 from core.neural_network import neural_network
-from core.simple.logistic_regression import regression
-from core.simple.neural_network_2_layer import nn_2_layer
+from core.preprocessing.normalize_inputs import apply_normalize, normalize
 from core.preprocessing.split_dataset import split_dataset
-from core.cost.logistic import calc_precision, __logistic_cost
-from core.preprocessing.normalize_inputs import normalize, apply_normalize
 
 X, y = datasets.load_breast_cancer(return_X_y=True)
 
-
-def nnlib_regression(X, y):
-    parameters, predictions, error, acc = regression(X.T, y, 10000)
-    print(1*(predictions > 0.5))
-    print("Accuracy = ", acc, '%')
-
-
-def nnlib_nn_2_layer(X, y):
-    parameters, predictions, error, acc = nn_2_layer(X.T, y, 10000, 16, 0.001)
-    print(1*(predictions > 0.5))
-    print("Accuracy = ", acc, '%')
-
-
-# nnlib_regression(X, y)
-# nnlib_nn_2_layer(X, y)
 
 learning_rate = 0.001
 keep_prob = 1
@@ -53,8 +36,6 @@ parameters, predictions, error, acc = neural_network.train(
 
 dev_predictions = neural_network.predict(X_dev.T, parameters, layers)
 dev_error = __logistic_cost(dev_predictions, y_dev, parameters, 0, len(layers))
-
-
 dev_acc = calc_precision(dev_predictions, y_dev)
 
 print("Train:\n\tError=", error, "\n\tAccuracy=", acc, '%')
