@@ -55,8 +55,8 @@ def backward_step(parameters, cache, layers, Y):
     return cache, parameters
 
 
-def get_optimized_updates(optimization, cache, dW_current, db_current, layer_index, iteration_in_epoch, iterations_per_batch, epoch):
-    if optimization["alg"] == 'momentum':
+def get_optimized_updates(optimization, cache, dW_current, db_current, layer_index, iteration_in_epoch, iterations_per_batch, epoch, epsilon=10**-8):
+    if optimization["alg"] == "momentum":
         beta_1 = optimization["beta_1"]
 
         v_dW_str = "v_dW" + str(layer_index)
@@ -70,15 +70,87 @@ def get_optimized_updates(optimization, cache, dW_current, db_current, layer_ind
         if v_db_str not in cache.keys():
             cache[v_db_str] = 0
 
-        cache[v_dW_str], cache[v_db_str] = beta_1 * cache[v_dW_str] + \
-            (1 - beta_1) * dW_current, beta_1 * cache[v_db_str] + \
+        cache[v_dW_str] = beta_1 * cache[v_dW_str] + \
+            (1 - beta_1) * dW_current
+        cache[v_db_str] = beta_1 * cache[v_db_str] + \
             (1 - beta_1) * db_current
 
         bias_denominator = max(1 - np.power(
-            beta_1, epoch * iteration_in_epoch + iteration_in_epoch), 1)
+            beta_1, epoch * iteration_in_epoch + iteration_in_epoch), 0.01)
 
-        w_update_value = cache["v_dW" + str(layer_index)] / bias_denominator
-        b_update_value = cache["v_db" + str(layer_index)] / bias_denominator
+        w_update_value = cache[v_dW_str] / bias_denominator
+        b_update_value = cache[v_db_str] / bias_denominator
+        return w_update_value, b_update_value
+    elif optimization["alg"] == "rmsprop":
+        beta_2 = optimization["beta_2"]
+
+        s_dW_str = "s_dW" + str(layer_index)
+        s_db_str = "s_db" + str(layer_index)
+
+        # initialization
+        if s_dW_str not in cache.keys():
+            print("Running ",
+                  optimization["alg"], " optimization algorithm")
+            cache[s_dW_str] = 0
+        if s_db_str not in cache.keys():
+            cache[s_db_str] = 0
+
+        cache[s_dW_str] = beta_2 * cache[s_dW_str] + \
+            (1 - beta_2) * np.multiply(dW_current, dW_current)
+        cache[s_db_str] = beta_2 * cache[s_db_str] + \
+            (1 - beta_2) * np.multiply(db_current, db_current)
+
+        s_bias_denominator = max(1 - np.power(
+            beta_2, epoch * iteration_in_epoch + iteration_in_epoch), 0.01)
+
+        s_dW_corrected = cache[s_dW_str] / s_bias_denominator
+        s_db_corrected = cache[s_db_str] / s_bias_denominator
+
+        w_update_value = dW_current / (np.sqrt(s_dW_corrected) + epsilon)
+        b_update_value = db_current / (np.sqrt(s_db_corrected) + epsilon)
+        return w_update_value, b_update_value
+    elif optimization["alg"] == "adam":
+        beta_1 = optimization["beta_1"]
+        beta_2 = optimization["beta_2"]
+
+        v_dW_str = "v_dW" + str(layer_index)
+        v_db_str = "v_db" + str(layer_index)
+        s_dW_str = "s_dW" + str(layer_index)
+        s_db_str = "s_db" + str(layer_index)
+
+        # initialization
+        if v_dW_str not in cache.keys():
+            print("Running ",
+                  optimization["alg"], " optimization algorithm")
+            cache[v_dW_str] = 0
+        if v_db_str not in cache.keys():
+            cache[v_db_str] = 0
+        if s_dW_str not in cache.keys():
+            cache[s_dW_str] = 0
+        if s_db_str not in cache.keys():
+            cache[s_db_str] = 0
+
+        cache[v_dW_str] = beta_1 * cache[v_dW_str] + \
+            (1 - beta_1) * dW_current
+        cache[v_db_str] = beta_1 * cache[v_db_str] + \
+            (1 - beta_1) * db_current
+        cache[s_dW_str] = beta_2 * cache[s_dW_str] + \
+            (1 - beta_2) * np.multiply(dW_current, dW_current)
+        cache[s_db_str] = beta_2 * cache[s_db_str] + \
+            (1 - beta_2) * np.multiply(db_current, db_current)
+
+        v_bias_denominator = max(1 - np.power(
+            beta_1, epoch * iteration_in_epoch + iteration_in_epoch), 0.01)
+        s_bias_denominator = max(1 - np.power(
+            beta_2, epoch * iteration_in_epoch + iteration_in_epoch), 0.01)
+
+        v_dW_corrected = cache[v_dW_str] / v_bias_denominator
+        v_db_corrected = cache[v_db_str] / v_bias_denominator
+        s_dW_corrected = cache[s_dW_str] / s_bias_denominator
+        s_db_corrected = cache[s_db_str] / s_bias_denominator
+
+        w_update_value = v_dW_corrected / (np.sqrt(s_dW_corrected) + epsilon)
+        b_update_value = v_db_corrected / (np.sqrt(s_db_corrected) + epsilon)
         return w_update_value, b_update_value
 
 

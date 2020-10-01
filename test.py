@@ -15,37 +15,39 @@ m = X.shape[0]
 y.reshape(m, 1)
 
 
-epochs = 100
+epochs = 1000
 
 
 def learning_rate(epoch):
-    return (0.05 if epoch < epochs else 0.01)
+    return (0.005 if epoch < epochs else 0.0001)
 
 
-keep_prob = 0.6
+keep_prob = 1
 lambd = 0
 
-hidden_units = 1024
+hidden_units = 16
 
-optimization_alg = "momentum"
+optimization_alg = "adam"
 beta_1 = 0.9
+beta_2 = 0.99
 
 hidden_layer = {"units": hidden_units, "activation": 'relu', "keep_prob": keep_prob, "lambd": lambd,
-                "learning_rate": learning_rate, "optimization": {"alg": optimization_alg, "beta_1": beta_1}}
+                "learning_rate": learning_rate, "optimization": {"alg": optimization_alg, "beta_1": beta_1, "beta_2": beta_2}}
 
 layers = [
     {"units": hidden_units, "activation": 'relu', "keep_prob": 1,
      "lambd": lambd, "learning_rate": learning_rate,
-     "optimization": {"alg": optimization_alg, "beta_1": beta_1}
+     "optimization": {"alg": optimization_alg, "beta_1": beta_1, "beta_2": beta_2}
      },
 
     hidden_layer,
     hidden_layer,
     hidden_layer,
     hidden_layer,
+    hidden_layer,
 
     {"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate,
-     "optimization": {"alg": optimization_alg, "beta_1": beta_1}
+     "optimization": {"alg": optimization_alg, "beta_1": beta_1, "beta_2": beta_2}
      }, ]
 
 X_train, X_dev, X_test, y_train, y_dev, y_test = split_dataset(
