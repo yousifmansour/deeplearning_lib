@@ -1,9 +1,8 @@
 import numpy as np
-
-from core.preprocessing.initialization import initialize_parameters
-from core.cost.logistic import __logistic_cost, calc_f1_score
-from core.activations.sigmoid import __sigmoid
 from core.activations.relu import __relu, __relu_prime
+from core.activations.sigmoid import __sigmoid
+from core.cost.logistic import __logistic_cost, calc_f1_score
+from core.preprocessing.initialization import initialize_parameters
 
 
 def initialize_network_parameters(layer_dimensions, m):
@@ -56,7 +55,7 @@ def backward_step(parameters, cache, layers, Y):
     return cache, parameters
 
 
-def update_params(parameters, cache, layers, m, iteration):
+def update_params(parameters, cache, layers, m, epoch, iteration_in_epoch, iterations_per_batch):
     for i in range(len(layers), 0, -1):
         layer = layers[i-1]
         A_before = cache["A" + str(i-1)]
@@ -67,15 +66,45 @@ def update_params(parameters, cache, layers, m, iteration):
         b_str = "b" + str(i)
         learning_rate_function = layer["learning_rate"] if "learning_rate" in layer.keys(
         ) else lambda _: 0.01
-        learning_rate = learning_rate_function(iteration)
+        learning_rate = learning_rate_function(epoch)
         lambd = layer["lambd"] if "lambd" in layer.keys() else 0
+
+        if "optimization" in layer.keys():
+            optimization = layer["optimization"]
+            if optimization["alg"] == 'momentum':
+                beta_1 = optimization["beta_1"]
+
+                v_dW_str = "v_dW" + str(i)
+                v_db_str = "v_db" + str(i)
+
+                # initialization
+                if v_dW_str not in cache.keys():
+                    print("Running ",
+                          optimization["alg"], " optimization algorithm")
+                    cache[v_dW_str] = 0
+                if v_db_str not in cache.keys():
+                    cache[v_db_str] = 0
+
+                cache[v_dW_str], cache[v_db_str] = beta_1 * cache[v_dW_str] + \
+                    (1 - beta_1) * dW_current, beta_1 * cache[v_db_str] + \
+                    (1 - beta_1) * db_current
+
+                bias_denominator = max(1 - np.power(
+                    beta_1, epoch * iteration_in_epoch + iteration_in_epoch), 1)
+
+                w_update_value = cache["v_dW" + str(i)] / bias_denominator
+                b_update_value = cache["v_db" + str(i)] / bias_denominator
+        else:
+            w_update_value = dW_current
+            b_update_value = db_current
+
         parameters[w_str] = parameters[w_str] - learning_rate * \
-            (dW_current + (lambd/m)*parameters[w_str])
-        parameters[b_str] = parameters[b_str] - learning_rate * db_current
+            (w_update_value + (lambd/m)*parameters[w_str])
+        parameters[b_str] = parameters[b_str] - learning_rate * b_update_value
     return parameters
 
 
-def train(X, Y, X_dev, Y_dev, iterations=1000, batch_size=64, layers=[{"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": 0}]):
+def train(X, Y, X_dev, Y_dev, epochs=1000, batch_size=64, layers=[{"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": 0}]):
     print("X.shape", X.shape)
     print("Y.shape", Y.shape)
 
@@ -96,11 +125,10 @@ def train(X, Y, X_dev, Y_dev, iterations=1000, batch_size=64, layers=[{"units": 
     final_lambd = layers[len(
         layers)-1]["lambd"] if "lambd" in layers[len(layers)-1].keys() else 0
 
-    for i in range(0, iterations):
-        # if i == iterations/2:
-            # TODO: check gradients
-            # check_gradients(parameters, cache, Y, final_lambd, len(layers))
-        for j in range(0, np.maximum(int(np.ceil(m/batch_size))-1, 1)):
+    iterations_per_batch = np.maximum(int(np.ceil(m/batch_size))-1, 1)
+
+    for i in range(0, epochs):
+        for j in range(0, iterations_per_batch):
             X_batch = X.T[j*batch_size: (j+1)*batch_size].T
             Y_batch = Y.T[j*batch_size: (j+1)*batch_size].T
 
@@ -108,7 +136,8 @@ def train(X, Y, X_dev, Y_dev, iterations=1000, batch_size=64, layers=[{"units": 
             cache, parameters = forward_step(parameters, cache, layers)
             cache, parameters = backward_step(
                 parameters, cache, layers, Y_batch)
-            parameters = update_params(parameters, cache, layers, m, i)
+            parameters = update_params(
+                parameters, cache, layers, m, i, j, iterations_per_batch)
 
             AL = cache["A" + str(len(layers))]
 
@@ -123,9 +152,11 @@ def train(X, Y, X_dev, Y_dev, iterations=1000, batch_size=64, layers=[{"units": 
                 count = 1
                 if(i % 10 == 0):
                     dev_predictions = predict(X_dev, parameters, layers)
-                    dev_error = __logistic_cost(dev_predictions, Y_dev, parameters, 0, len(layers))
+                    dev_error = __logistic_cost(
+                        dev_predictions, Y_dev, parameters, 0, len(layers))
                     dev_acc = calc_f1_score(dev_predictions, Y_dev)
-                    print('Error at step', i, '/', iterations, ': ',  error, "F1 Accuracy: ", acc, '%', ' Dev error:', dev_error, ' Dev F1 Accuracy:, ', dev_acc, '%')
+                    print('Error at epoch', i, '/', epochs, ': ',  error, "F1 Accuracy: ",
+                          acc, '%', ' Dev error:', dev_error, ' Dev F1 Accuracy:, ', dev_acc, '%')
 
     predictions = predict(X, parameters, layers)
     error = __logistic_cost(predictions, Y, parameters,
