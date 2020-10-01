@@ -55,6 +55,33 @@ def backward_step(parameters, cache, layers, Y):
     return cache, parameters
 
 
+def get_optimized_updates(optimization, cache, dW_current, db_current, layer_index, iteration_in_epoch, iterations_per_batch, epoch):
+    if optimization["alg"] == 'momentum':
+        beta_1 = optimization["beta_1"]
+
+        v_dW_str = "v_dW" + str(layer_index)
+        v_db_str = "v_db" + str(layer_index)
+
+        # initialization
+        if v_dW_str not in cache.keys():
+            print("Running ",
+                  optimization["alg"], " optimization algorithm")
+            cache[v_dW_str] = 0
+        if v_db_str not in cache.keys():
+            cache[v_db_str] = 0
+
+        cache[v_dW_str], cache[v_db_str] = beta_1 * cache[v_dW_str] + \
+            (1 - beta_1) * dW_current, beta_1 * cache[v_db_str] + \
+            (1 - beta_1) * db_current
+
+        bias_denominator = max(1 - np.power(
+            beta_1, epoch * iteration_in_epoch + iteration_in_epoch), 1)
+
+        w_update_value = cache["v_dW" + str(layer_index)] / bias_denominator
+        b_update_value = cache["v_db" + str(layer_index)] / bias_denominator
+        return w_update_value, b_update_value
+
+
 def update_params(parameters, cache, layers, m, epoch, iteration_in_epoch, iterations_per_batch):
     for i in range(len(layers), 0, -1):
         layer = layers[i-1]
@@ -71,29 +98,8 @@ def update_params(parameters, cache, layers, m, epoch, iteration_in_epoch, itera
 
         if "optimization" in layer.keys():
             optimization = layer["optimization"]
-            if optimization["alg"] == 'momentum':
-                beta_1 = optimization["beta_1"]
-
-                v_dW_str = "v_dW" + str(i)
-                v_db_str = "v_db" + str(i)
-
-                # initialization
-                if v_dW_str not in cache.keys():
-                    print("Running ",
-                          optimization["alg"], " optimization algorithm")
-                    cache[v_dW_str] = 0
-                if v_db_str not in cache.keys():
-                    cache[v_db_str] = 0
-
-                cache[v_dW_str], cache[v_db_str] = beta_1 * cache[v_dW_str] + \
-                    (1 - beta_1) * dW_current, beta_1 * cache[v_db_str] + \
-                    (1 - beta_1) * db_current
-
-                bias_denominator = max(1 - np.power(
-                    beta_1, epoch * iteration_in_epoch + iteration_in_epoch), 1)
-
-                w_update_value = cache["v_dW" + str(i)] / bias_denominator
-                b_update_value = cache["v_db" + str(i)] / bias_denominator
+            w_update_value, b_update_value = get_optimized_updates(
+                optimization, cache, dW_current, db_current, i, iteration_in_epoch, iterations_per_batch, epoch)
         else:
             w_update_value = dW_current
             b_update_value = db_current
