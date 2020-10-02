@@ -19,39 +19,35 @@ epochs = 1000
 
 
 def learning_rate(epoch):
-    return (0.005 if epoch < epochs else 0.0001)
+    return (0.001 if epoch < epochs / 2 else 0.0001)
 
 
-keep_prob = 1
-lambd = 0
+keep_prob = 0.99
+lambd = 0.7
 
-hidden_units = 16
+hidden_units = 4
 
 optimization_alg = "adam"
 beta_1 = 0.9
 beta_2 = 0.99
 
+optimization = {"alg": optimization_alg, "beta_1": beta_1, "beta_2": beta_2}
+
 hidden_layer = {"units": hidden_units, "activation": 'relu', "keep_prob": keep_prob, "lambd": lambd,
-                "learning_rate": learning_rate, "optimization": {"alg": optimization_alg, "beta_1": beta_1, "beta_2": beta_2}}
+                "learning_rate": learning_rate, "optimization": optimization}
 
 layers = [
-    {"units": hidden_units, "activation": 'relu', "keep_prob": 1,
-     "lambd": lambd, "learning_rate": learning_rate,
-     "optimization": {"alg": optimization_alg, "beta_1": beta_1, "beta_2": beta_2}
-     },
+    # {"units": hidden_units, "activation": 'sigmoid', "keep_prob": 1, "lambd": lambd,
+    #     "learning_rate": learning_rate, "optimization": optimization},
 
     hidden_layer,
     hidden_layer,
     hidden_layer,
-    hidden_layer,
-    hidden_layer,
 
-    {"units": 1, "activation": 'sigmoid', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate,
-     "optimization": {"alg": optimization_alg, "beta_1": beta_1, "beta_2": beta_2}
-     }, ]
+    {"units": 1, "activation": 'relu', "keep_prob": 1, "lambd": lambd, "learning_rate": learning_rate, "optimization": optimization}, ]
 
 X_train, X_dev, X_test, y_train, y_dev, y_test = split_dataset(
-    X, y, True, 0.5, 0.25)
+    X, y, True, 0.7, 0.15)
 X_train, X_mean, X_standard_deviation = normalize(X_train)
 X_dev = apply_normalize(X_dev, X_mean, X_standard_deviation)
 X_test = apply_normalize(X_test, X_mean, X_standard_deviation)
@@ -66,13 +62,13 @@ dev_acc = calc_f1_score(dev_predictions, y_dev)
 print("Train:\n\tError=", error, "\n\tF1 Accuracy=", acc, '%')
 print("Dev:\n\tError=", dev_error, "\n\tF1 Accuracy=", dev_acc, '%')
 
-# test_predictions = neural_network.predict(X_test.T, parameters, layers)
-# test_error = __logistic_cost(
-#     test_predictions, y_test, parameters, 0, len(layers))
-# test_acc = calc_f1_score(test_predictions, y_test)
-# print("Test:\n\tError=", test_error, "\n\tF1 Accuracy=", test_acc, '%')
+test_predictions = neural_network.predict(X_test.T, parameters, layers)
+test_error = __logistic_cost(
+    test_predictions, y_test, parameters, 0, len(layers))
+test_acc = calc_f1_score(test_predictions, y_test)
+print("Test:\n\tError=", test_error, "\n\tF1 Accuracy=", test_acc, '%')
 
-# print(1*(predictions.T[10: 20].T > 0.5))
-# print(y[10: 20])
+print(1*(predictions.T[58: 68].T > 0.5)[0])
+print(y[58: 68])
 
-# test_predictions = neural_network.predict(X_test.T, parameters, layers)s
+test_predictions = neural_network.predict(X_test.T, parameters, layers)
