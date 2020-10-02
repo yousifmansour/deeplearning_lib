@@ -215,7 +215,7 @@ def train(X, Y, X_dev, Y_dev, epochs=1000, batch_size=64, layers=[{"units": 1, "
             cache, parameters = backward_step(
                 parameters, cache, layers, Y_batch)
             parameters = update_params(
-                parameters, cache, layers, m, i, j, iterations_per_batch)
+                parameters, cache, layers, batch_size, i, j, iterations_per_batch)
 
             AL = cache["A" + str(len(layers))]
 
